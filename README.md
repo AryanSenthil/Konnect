@@ -9,6 +9,18 @@
 
 </div>
 
+> ## Konnect is moving to Orchis.ai
+>
+> Konnect is moving to the [Orchis.ai LLC](https://orchis.ai) GitHub organization soon. When it does,
+> this AGPL edition will be frozen: its releases stay available under the AGPL, and new development
+> continues only in **Konnect-EDA**, Orchis.ai's continuation of Konnect.
+>
+> **Want to keep building with us?** Sign up to contribute to Konnect-EDA at
+> **[orchis.ai/konnect/join](https://orchis.ai/konnect/join)**.
+>
+> **Already contributed to Konnect?** Please answer the sign-off email we sent you. If you didn't get
+> one, sign in with GitHub at [orchis.ai/konnect/sign-off](https://orchis.ai/konnect/sign-off).
+
 **AI-assisted PCB design for KiCAD 10.** Konnect is a native KiCAD plugin — a single
 Rust binary — that lets Claude and other AI assistants design schematics and PCBs
 through the [Model Context Protocol](https://modelcontextprotocol.io) (MCP).
