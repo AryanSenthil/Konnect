@@ -9,17 +9,26 @@
 
 </div>
 
-> ## Konnect is moving to Orchis.ai
+> ## Konnect has moved to Konnect-EDA
 >
-> Konnect is moving to the [Orchis.ai LLC](https://orchis.ai) GitHub organization soon. When it does,
-> this AGPL edition will be frozen: its releases stay available under the AGPL, and new development
-> continues only in **Konnect-EDA**, Orchis.ai's continuation of Konnect.
+> **This repository will be archived at midnight (US Eastern) at the end of Sunday, October 25, 2026.**
+> After that it's read-only. Everything here stays readable, and the releases already published stay
+> available under the AGPL-3.0, but no new issues, comments or pull requests can be added.
 >
-> **Want to keep building with us?** Sign up to contribute to Konnect-EDA at
-> **[orchis.ai/konnect/join](https://orchis.ai/konnect/join)**.
+> Konnect continues as **[Konnect-EDA](https://github.com/Orchis-ai-LLC/Konnect-EDA)**, from
+> Orchis.ai LLC. It's the same AI-assisted KiCad design tool, and all development continues there:
 >
-> **Already contributed to Konnect?** Please answer the sign-off email we sent you. If you didn't get
-> one, sign in with GitHub at [orchis.ai/konnect/sign-off](https://orchis.ai/konnect/sign-off).
+> - **Downloads:** the [Konnect-EDA Releases page](https://github.com/Orchis-ai-LLC/Konnect-EDA/releases);
+>   the first release is coming soon. Konnect-EDA is commercial, closed-source software, **free to use
+>   during the beta** (until version 1.0).
+> - **Bugs and feature requests:** the
+>   [Konnect-EDA issue tracker](https://github.com/Orchis-ai-LLC/Konnect-EDA/issues).
+> - **Want to help build it?** Sign up to contribute at
+>   **[orchis.ai/konnect/join](https://orchis.ai/konnect/join)**.
+> - **Contributed to Konnect?** Please answer your sign-off email, or sign in with GitHub at
+>   [orchis.ai/konnect/sign-off](https://orchis.ai/konnect/sign-off). It's open until November 20.
+>
+> Thank you to everyone who built Konnect with us.
 
 **AI-assisted PCB design for KiCAD 10.** Konnect is a native KiCAD plugin — a single
 Rust binary — that lets Claude and other AI assistants design schematics and PCBs
