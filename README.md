@@ -5,7 +5,7 @@
 <img src="resources/images/KiCAD-MCP-Server-rust.svg" alt="KiCAD-MCP-Server Logo" height="240" />
 
 
-# Konnect *BETA Release
+# Konnect is MOVING!!!
 
 </div>
 
