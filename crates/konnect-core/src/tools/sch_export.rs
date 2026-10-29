@@ -1074,7 +1074,10 @@ fn connectivity_write_refusal(path: &Path, error: &SexpError) -> Option<CallTool
             "the schematic changed after connectivity fixes were planned; reload and retry"
         }
         SexpError::KiCadEditorLocked { .. } => {
-            "KiCad owns the schematic; use a live editor mutation or close the document"
+            return Some(stale_connectivity_target(
+                path.display().to_string(),
+                &konnect_sexp::writer::schematic_lock_message(path),
+            ));
         }
         _ => return None,
     };

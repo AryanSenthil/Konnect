@@ -1,5 +1,6 @@
 mod config;
 mod install;
+mod live_editor;
 mod manifest;
 mod run_registry;
 mod transaction_cli;
@@ -135,6 +136,9 @@ async fn main() -> Result<()> {
 
     info!("Konnect v{} starting", env!("CARGO_PKG_VERSION"));
     ipc_source.log(&config.ipc_address);
+
+    // Fork: let schematic writes proceed while KiCad's Schematic Editor has the file open.
+    live_editor::install();
 
     // Name the configuration that actually started this process. A user whose
     // settings appear to be ignored otherwise has nothing to go on before the

@@ -1567,11 +1567,13 @@ fn observe_datasheet_updates(
 }
 
 fn datasheet_commit_refusal(path: &Path, error: &SexpError) -> Option<CallToolResult> {
+    let lock_message;
     let reason = match error {
         SexpError::Conflict { .. } => "the schematic changed after enrichment was planned",
         SexpError::ItemConflict { reason, .. } => reason,
         SexpError::KiCadEditorLocked { .. } => {
-            "KiCad owns the schematic; use a live editor mutation or close the document"
+            lock_message = konnect_sexp::writer::schematic_lock_message(path);
+            lock_message.as_str()
         }
         _ => return None,
     };

@@ -437,9 +437,16 @@ impl McpHandler {
                                 ToolErrorKind::Conflict {
                                     paths: vec![path.clone()],
                                 },
-                                format!(
-                                    "Schematic '{path}' has a KiCad editor lock. Close Eeschema, or resolve a stale lock only after confirming no editor owns the file, then retry."
-                                ),
+                                if konnect_sexp::writer::editor_lock_hook_installed() {
+                                    format!(
+                                        "Schematic '{path}': {}. Konnect did not modify it.",
+                                        konnect_sexp::writer::schematic_lock_message(locked)
+                                    )
+                                } else {
+                                    format!(
+                                        "Schematic '{path}' has a KiCad editor lock. Close Eeschema, or resolve a stale lock only after confirming no editor owns the file, then retry."
+                                    )
+                                },
                             ),
                             CallStatus::Error,
                             Some("conflict".to_string()),

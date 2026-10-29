@@ -227,9 +227,113 @@ pub(crate) fn ensure_kicad_design_document_is_closed(path: &Path) -> Result<(), 
         return Ok(());
     };
 
-    ensure_kicad_design_document_is_closed_with(path, &lock_path, |path| {
+    let result = ensure_kicad_design_document_is_closed_with(path, &lock_path, |path| {
         std::fs::symlink_metadata(path).map(|_| ())
-    })
+    });
+
+    // Fork: an observed (not unreadable) lock on a schematic may be handed to the
+    // live-editor hook, which can make the open Schematic Editor safe to write under.
+    let observed_schematic_lock = matches!(
+        &result,
+        Err(SexpError::KiCadEditorLocked {
+            inspection_error: None,
+            ..
+        })
+    ) && is_schematic_path(path);
+    if !observed_schematic_lock {
+        return result;
+    }
+    match consult_editor_lock_hook(path, &lock_path) {
+        None => result,
+        Some(Ok(())) => Ok(()),
+        Some(Err(reason)) => Err(SexpError::KiCadEditorLocked {
+            path: path.to_path_buf(),
+            lock_path,
+            inspection_error: Some(format!("live editor: {reason}")),
+        }),
+    }
+}
+
+// ── Fork: live-editor hook ────────────────────────────────────────────────────
+//
+// Upstream Konnect refuses every schematic write while KiCad's sibling lock is
+// present, because KiCad 10's Schematic Editor keeps its own in-memory copy and
+// its next save would silently overwrite the edit. The fork lets the server
+// binary install one hook that can make the open editor safe first (save the
+// user's work, confirm no dialog is open) and reload it after the write. With no
+// hook installed, behaviour is exactly upstream's: fail closed.
+
+/// Decides whether a schematic write may proceed while KiCad's editor lock is
+/// present. Called with the schematic path and its lock path immediately before
+/// the write. `Ok(())` lets the write proceed; `Err(reason)` keeps it refused and
+/// the reason is reported to the caller.
+pub type EditorLockHook = dyn Fn(&Path, &Path) -> Result<(), String> + Send + Sync;
+
+static EDITOR_LOCK_HOOK: std::sync::OnceLock<Box<EditorLockHook>> = std::sync::OnceLock::new();
+static EDITOR_LOCK_REFUSALS: std::sync::OnceLock<
+    std::sync::Mutex<std::collections::HashMap<PathBuf, String>>,
+> = std::sync::OnceLock::new();
+
+/// Install the process-wide live-editor hook. Only the first call wins; returns
+/// whether this call installed it.
+pub fn set_editor_lock_hook(hook: Box<EditorLockHook>) -> bool {
+    EDITOR_LOCK_HOOK.set(hook).is_ok()
+}
+
+/// Whether a live-editor hook is installed in this process.
+pub fn editor_lock_hook_installed() -> bool {
+    EDITOR_LOCK_HOOK.get().is_some()
+}
+
+/// The reason the live-editor hook last refused a write to `path`, if its most
+/// recent decision for that path was a refusal.
+pub fn editor_lock_refusal(path: &Path) -> Option<String> {
+    let refusals = EDITOR_LOCK_REFUSALS.get()?;
+    let key = refusal_key(path);
+    refusals.lock().ok()?.get(&key).cloned()
+}
+
+/// A caller-facing sentence for a schematic write blocked by KiCad's editor lock,
+/// including the live-editor hook's reason when it gave one.
+pub fn schematic_lock_message(path: &Path) -> String {
+    match editor_lock_refusal(path) {
+        Some(reason) => format!(
+            "KiCad's Schematic Editor has this schematic open and could not be made safe to edit: {reason}"
+        ),
+        None if editor_lock_hook_installed() => {
+            "KiCad owns the schematic and the live-editor bridge did not allow the write".to_owned()
+        }
+        None => "KiCad owns the schematic; use a live editor mutation or close the document"
+            .to_owned(),
+    }
+}
+
+fn is_schematic_path(path: &Path) -> bool {
+    path.extension()
+        .and_then(OsStr::to_str)
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("kicad_sch"))
+}
+
+fn refusal_key(path: &Path) -> PathBuf {
+    path.canonicalize().unwrap_or_else(|_| path.to_path_buf())
+}
+
+fn consult_editor_lock_hook(path: &Path, lock_path: &Path) -> Option<Result<(), String>> {
+    let hook = EDITOR_LOCK_HOOK.get()?;
+    let decision = hook(path, lock_path);
+    let refusals = EDITOR_LOCK_REFUSALS.get_or_init(Default::default);
+    if let Ok(mut refusals) = refusals.lock() {
+        let key = refusal_key(path);
+        match &decision {
+            Ok(()) => {
+                refusals.remove(&key);
+            }
+            Err(reason) => {
+                refusals.insert(key, reason.clone());
+            }
+        }
+    }
+    Some(decision)
 }
 
 fn ensure_kicad_design_document_is_closed_with(
